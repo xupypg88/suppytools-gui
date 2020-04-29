@@ -14,6 +14,7 @@
 import pysftp
 import PySimpleGUI as sg
 import clipboard
+import os
 
 url = clipboard.paste()
 
@@ -22,6 +23,11 @@ url = clipboard.paste()
 myHostname = url.split('@')[1].split('/')[0]
 myUsername = url.split('@')[0].split('/')[2].split(':')[0]
 myPassword = url.split('@')[0].split(':')[2]
+caseNumber = myUsername[3:]
+pathCases = '/home/grizzly/Cases/' + caseNumber + '/'
+
+if os.path.isfile(pathCases):
+    os.mkdir(pathCases)
 
 print(myHostname)
 print((myUsername, myPassword))
@@ -33,7 +39,7 @@ def openfiletree(filelist):
 
     layout = [[sg.Text('Select a file')]]
     for f in filelist:
-        layout.append([sg.Checkbox(f, default= False)])
+        layout.append([sg.Checkbox(f, default=False)])
     layout.append([sg.Button('Ok'), sg.Button('Close')])
 
     print(layout)
@@ -54,7 +60,11 @@ def openfiletree(filelist):
 # connection closed automatically at the end of the with-block
 
 
-with pysftp.Connection(host=myHostname, username=myUsername, password=myPassword) as sftp:
+cnopts = pysftp.CnOpts()
+cnopts.hostkeys = None
+
+
+with pysftp.Connection(host=myHostname, username=myUsername, password=myPassword, cnopts=cnopts) as sftp:
     print("Connection successfully established ... ")
 
     # Switch to a remote directory
@@ -74,7 +84,7 @@ with pysftp.Connection(host=myHostname, username=myUsername, password=myPassword
         if value:
             print('downloading ', filenames[key], ' ...')
             # todo checking for directory before download
-            sftp.get(filenames[key], filenames[key])
+            sftp.get(filenames[key], pathCases + filenames[key])
 
 
 
